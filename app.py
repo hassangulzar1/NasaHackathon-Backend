@@ -1,8 +1,6 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS  # Import CORS
-from sentence_transformers import SentenceTransformer
+from flask_cors import CORS
 from qdrant_client import QdrantClient
-from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from groq import Groq
 import json
@@ -19,18 +17,22 @@ qdrant_client = QdrantClient(
     api_key="ICfCrvnuKA10Swwy7giPRy3P6uQxKDn8dgefeNYpfIuqqV_j4ifE4w",
 )
 
-# Initialize your embedding model
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+# Initialize Groq client
+groq_client = Groq(api_key="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")
 
 # Your similarity threshold and collection name
 collection_name = "planets"
 similarity_threshold = 0.5
 
-# Initialize Groq client
-groq_client = Groq(api_key="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")
-
 # Define the function that processes the query
 def query_planet(query_text):
+    # Lazy import to reduce initial load
+    from sentence_transformers import SentenceTransformer
+    from sklearn.metrics.pairwise import cosine_similarity
+
+    # Initialize your embedding model
+    model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
     # Encode the query into a vector
     query_vector = model.encode(query_text).tolist()
 
@@ -64,7 +66,7 @@ def generate_chat_response(user_query, context_response):
 
     chat_completion = groq_client.chat.completions.create(
         messages=[
-            {"role": "system", "content": "You are a helpful assistant for solar system and planets system."},
+            {"role": "system", "content": "You are a helpful assistant for solar system and planets."},
             {"role": "user", "content": combined_content},
         ],
         model="llama3-8b-8192",
@@ -83,9 +85,6 @@ def chatbot():
     data = request.get_json()
     if not data:
         return jsonify({'error': 'No data provided'}), 400
-
-    # Log request size
-    print(f"Request size: {len(json.dumps(data))} bytes")
 
     if 'query' not in data:
         return jsonify({'error': 'No query provided'}), 400
