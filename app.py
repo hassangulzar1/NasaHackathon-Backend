@@ -1,11 +1,11 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS  # Import CORS
-import pandas as pd
 from sentence_transformers import SentenceTransformer
 from qdrant_client import QdrantClient
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 from groq import Groq
+import json
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -60,7 +60,7 @@ def query_planet(query_text):
 
 # Define the function that interacts with Groq
 def generate_chat_response(user_query, context_response):
-    combined_content = f"Context: {context_response}\nUser's query: {user_query}"
+    combined_content = f"Context: {context_response[:100]}...\nUser's query: {user_query}"
 
     chat_completion = groq_client.chat.completions.create(
         messages=[
@@ -81,10 +81,15 @@ def generate_chat_response(user_query, context_response):
 @app.route('/chatbot', methods=['POST'])
 def chatbot():
     data = request.get_json()
+    if not data:
+        return jsonify({'error': 'No data provided'}), 400
+
+    # Log request size
+    print(f"Request size: {len(json.dumps(data))} bytes")
 
     if 'query' not in data:
         return jsonify({'error': 'No query provided'}), 400
-
+    
     user_query = data['query']
 
     # Get the response from Qdrant
