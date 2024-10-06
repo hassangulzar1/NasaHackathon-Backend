@@ -1,0 +1,28 @@
+# Ignore virtual environment folder
+venv/
+env/
+__pycache__/
+.venv
+# Ignore system-specific files
+.DS_Store
+
+# Byte-compiled Python files
+*.py[cod]
+*$py.class
+
+# Ignore environment variable files
+.env
+
+# Jupyter Notebook checkpoints (if you're using Jupyter)
+.ipynb_checkpoints/
+
+# Ignore log files and databases
+*.log
+*.sqlite3
+
+# Ignore Heroku local development files
+Procfile.local
+
+# Ignore any IDE-specific files
+.vscode/
+.idea/
